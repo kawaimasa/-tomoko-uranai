@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔮 智子の占い館</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Meiryo', sans-serif;
+            background: linear-gradient(135deg, #1a0033 0%, #2d1b69 50%, #1a0033 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+
+        .fortune-teller-img {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            display: block;
+            margin: 0 auto 30px;
+            border-radius: 15px;
+            border: 4px solid #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .fortune-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .fortune-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .fortune-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.6);
+            border-color: #ffd700;
+        }
+
+        .fortune-card h3 {
+            color: #ffd700;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .fortune-card p {
+            color: #e0e0e0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1em;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a0033;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 30px auto;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.6);
+        }
+
+        .result-container {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .chat-message.user {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 4px solid #ffd700;
+        }
+
+        .chat-message.ai {
+            background: rgba(138, 43, 226, 0.1);
+            border-left: 4px solid #8a2be2;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #ffd700;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 215, 0, 0.3);
+            border-top: 4px solid #ffd700;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            margin-top: 20px;
+        }
+
+        .question-counter {
+            text-align: center;
+            color: #ffd700;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+
+        .help-text {
+            font-size: 0.85em;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        .required {
+            color: #ff6b6b;
+            font-size: 0.9em;
+        }
+
+        .optional {
+            color: #999;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔮 智子の占い館</h1>
+        
+        <img src="https://www.genspark.ai/api/files/s/PnQT1NL1?token=Z0FBQUFBQnBlM0pmd0VVVjBkRjVwbmVZZGNmbGM4TlJEUllRSkRxd2lqd2lnMWIwWkVWbUJYZVpJQkxhSl8yWFA4TUVJY2ppNmhnbFFuYlFpa3c0Z3lZbEtLZkZzWl8wUFp1d21HSzM3MmZYYU1vYTlzdFhFTnlvb2JQV210QVotWGY3ajBka2cxOFBBbGpCMHhOVlpYa2tjQlNSOWJnZWxwNkhVNTZjRzZKTTdyOGFDSF96X1dTdjlUcEhrMkxtb0RKaDQ4N2NlS2ViYnpzUGstM1Zoa0ROZU1YZUF3Y0V6U0ZQVkJSMF9UdWpBM3Y0NWRsYzNYZFdlVjB4dlR0WUU0ZUpIazRaM2RMSWFWTzEtaEZoYWVLRGtua2JkZ3h4ZEE9PQ" 
+             alt="智子" 
+             class="fortune-teller-img"
+             onerror="this.style.display='none'">
+
+        <!-- 占いメニュー画面 -->
+        <div id="menuScreen" class="screen active">
+            <p style="text-align: center; font-size: 1.2em; margin-bottom: 30px;">
+                ようこそ。私は智子です。<br>
+                どのような占いをご希望ですか？
+            </p>
+            
+            <div class="fortune-menu">
+                <div class="fortune-card" onclick="selectFortune('shichusuimei')">
+                    <h3>🌟 四柱推命</h3>
+                    <p>生年月日と時刻から、あなたの運命を詳しく読み解きます</p>
+                </div>
+                
+                <div class="fortune-card" onclick="selectFortune('tarot')">
+                    <h3>🃏 タロット占い</h3>
+                    <p>カードが示す、過去・現在・未来のメッセージ</p>
+                </div>
+                
+                <div class="fortune-card" onclick="selectFortune('crystal')">
+                    <h3>🔮 水晶玉占い</h3>
+                    <p>水晶の輝きに映る、あなたの未来</p>
+                </div>
+                
+                <div class="fortune-card" onclick="selectFortune('name')">
+                    <h3>✨ 姓名判断</h3>
+                    <p>お名前に込められた運勢と性格を鑑定</p>
+                </div>
+                
+                <div class="fortune-card" onclick="selectFortune('comprehensive')">
+                    <h3>🌙 総合鑑定</h3>
+                    <p>すべての占術を使った詳細な鑑定</p>
+                </div>
+                
+                <div class="fortune-card" onclick="selectFortune('love')">
+                    <h3>💕 恋愛・相性占い</h3>
+                    <p>恋愛運と気になる相手との相性を占います</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 入力フォーム画面 -->
+        <div id="inputScreen" class="screen">
+            <h2 id="fortuneTitle" style="text-align: center; color: #ffd700; margin-bottom: 30px;"></h2>
+            
+            <form id="fortuneForm">
+                <div class="form-group" id="birthdateGroup">
+                    <label>生年月日 <span class="required">*必須</span></label>
+                    <input type="date" id="birthdate" required>
+                </div>
+                
+                <div class="form-group" id="birthtimeGroup">
+                    <label>
+                        出生時刻 <span class="required">*必須</span>
+                        <span class="help-text">（わからない場合は正午12:00を入力してください）</span>
+                    </label>
+                    <input type="time" id="birthtime" value="12:00" required>
+                </div>
+                
+                <div class="form-group" id="nameGroup">
+                    <label>お名前 <span class="required">*必須</span></label>
+                    <input type="text" id="name" placeholder="山田太郎" required>
+                </div>
+                
+                <div class="form-group" id="genderGroup">
+                    <label>性別 <span class="optional">（任意）</span></label>
+                    <select id="gender">
+                        <option value="">選択してください</option>
+                        <option value="男性">男性</option>
+                        <option value="女性">女性</option>
+                        <option value="その他">その他</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="partnerNameGroup" style="display: none;">
+                    <label>相手のお名前 <span class="optional">（任意）</span></label>
+                    <input type="text" id="partnerName" placeholder="相手の名前">
+                </div>
+                
+                <div class="form-group" id="partnerBirthdateGroup" style="display: none;">
+                    <label>
+                        相手の生年月日 <span class="optional">（わかれば）</span>
+                        <span class="help-text">（わからなくても占えます）</span>
+                    </label>
+                    <input type="date" id="partnerBirthdate">
+                </div>
+                
+                <div class="form-group" id="questionGroup">
+                    <label id="questionLabel">占いたい内容・質問 <span class="required">*必須</span></label>
+                    <textarea id="question" placeholder="例：今年の運勢を知りたいです" required></textarea>
+                </div>
+                
+                <button type="submit" class="btn">✨ 運命を占う ✨</button>
+                <button type="button" class="btn back-btn" onclick="backToMenu()">メニューに戻る</button>
+            </form>
+        </div>
+
+        <!-- 結果表示画面 -->
+        <div id="resultScreen" class="screen">
+            <h2 style="text-align: center; color: #ffd700; margin-bottom: 20px;">鑑定結果</h2>
+            
+            <div id="chatHistory" class="result-container"></div>
+            
+            <div id="followUpSection">
+                <div class="form-group">
+                    <label>さらに詳しく知りたいことはありますか？</label>
+                    <textarea id="followUpQuestion" placeholder="追加の質問をどうぞ..."></textarea>
+                </div>
+                <button class="btn" onclick="askFollowUp()">質問する</button>
+                <div class="question-counter" id="questionCounter"></div>
+            </div>
+            
+            <button class="btn back-btn" onclick="backToMenu()">新しい占いをする</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedFortune = '';
+        let conversationHistory = [];
+        let questionCount = 0;
+        const MAX_QUESTIONS = 2;
+        const WORKER_URL = 'https://ootasensenraanai.kawai-6f8.workers.dev';
+
+        const fortuneNames = {
+            'shichusuimei': '四柱推命',
+            'tarot': 'タロット占い',
+            'crystal': '水晶玉占い',
+            'name': '姓名判断',
+            'comprehensive': '総合鑑定',
+            'love': '恋愛・相性占い'
+        };
+
+        function selectFortune(type) {
+            selectedFortune = type;
+            document.getElementById('fortuneTitle').textContent = fortuneNames[type];
+            
+            // すべてのフィールドをリセット
+            document.querySelectorAll('.form-group').forEach(group => {
+                group.style.display = 'block';
+                const input = group.querySelector('input, textarea, select');
+                if (input) input.removeAttribute('required');
+            });
+
+            // 占いの種類に応じて表示項目を調整
+            switch(type) {
+                case 'shichusuimei':
+                    setRequired(['birthdate', 'birthtime', 'name', 'question']);
+                    document.getElementById('questionLabel').innerHTML = '占いたい内容・質問 <span class="required">*必須</span>';
+                    break;
+                    
+                case 'tarot':
+                    hideFields(['birthdateGroup', 'birthtimeGroup', 'genderGroup']);
+                    setRequired(['question']);
+                    setOptional(['name']);
+                    document.getElementById('questionLabel').innerHTML = '占いたい内容（過去・現在・未来など） <span class="required">*必須</span>';
+                    break;
+                    
+                case 'crystal':
+                    hideFields(['birthdateGroup', 'birthtimeGroup', 'genderGroup']);
+                    setRequired(['question']);
+                    setOptional(['name']);
+                    document.getElementById('questionLabel').innerHTML = '知りたいこと・悩み <span class="required">*必須</span>';
+                    break;
+                    
+                case 'name':
+                    hideFields(['birthtimeGroup']);
+                    setRequired(['name', 'question']);
+                    setOptional(['birthdate', 'gender']);
+                    document.getElementById('questionLabel').innerHTML = '占いたい内容 <span class="required">*必須</span>';
+                    break;
+                    
+                case 'comprehensive':
+                    setRequired(['birthdate', 'birthtime', 'name', 'question']);
+                    document.getElementById('questionLabel').innerHTML = '占いたい内容 <span class="required">*必須</span>';
+                    break;
+                    
+                case 'love':
+                    hideFields(['birthtimeGroup']);
+                    showFields(['partnerNameGroup', 'partnerBirthdateGroup']);
+                    setRequired(['name', 'question']);
+                    setOptional(['birthdate', 'gender', 'partnerName', 'partnerBirthdate']);
+                    document.getElementById('questionLabel').innerHTML = '恋愛について知りたいこと <span class="required">*必須</span>';
+                    break;
+            }
+            
+            showScreen('inputScreen');
+        }
+
+        function hideFields(fieldIds) {
+            fieldIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.style.display = 'none';
+            });
+        }
+
+        function showFields(fieldIds) {
+            fieldIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.style.display = 'block';
+            });
+        }
+
+        function setRequired(fieldIds) {
+            fieldIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.setAttribute('required', 'required');
+            });
+        }
+
+        function setOptional(fieldIds) {
+            fieldIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.removeAttribute('required');
+            });
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        document.getElementById('fortuneForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const birthdate = document.getElementById('birthdate').value;
+            const birthtime = document.getElementById('birthtime').value;
+            const name = document.getElementById('name').value;
+            const gender = document.getElementById('gender').value;
+            const question = document.getElementById('question').value;
+            const partnerName = document.getElementById('partnerName').value;
+            const partnerBirthdate = document.getElementById('partnerBirthdate').value;
+            
+            let prompt = `あなたは経験豊富な占い師「智子」です。2026年1月29日時点で占いを行っています。\n\n`;
+            prompt += `占いの種類: ${fortuneNames[selectedFortune]}\n`;
+            
+            if (birthdate) prompt += `生年月日: ${birthdate}\n`;
+            if (birthtime) prompt += `出生時刻: ${birthtime}\n`;
+            if (name) prompt += `名前: ${name}\n`;
+            if (gender) prompt += `性別: ${gender}\n`;
+            if (partnerName) prompt += `相手の名前: ${partnerName}\n`;
+            if (partnerBirthdate) prompt += `相手の生年月日: ${partnerBirthdate}\n`;
+            
+            prompt += `\n質問: ${question}\n\n`;
+            prompt += `上記の情報をもとに、${fortuneNames[selectedFortune]}で詳しく占ってください。\n`;
+            prompt += `占い師らしい優しく神秘的な語り口で、具体的なアドバイスを含めて1500文字以上で鑑定してください。`;
+            
+            conversationHistory = [{ role: 'user', content: question }];
+            questionCount = 0;
+            
+            await callGeminiAPI(prompt, question);
+        });
+
+        async function askFollowUp() {
+            const followUpQuestion = document.getElementById('followUpQuestion').value.trim();
+            
+            if (!followUpQuestion) {
+                alert('質問を入力してください');
+                return;
+            }
+            
+            if (questionCount >= MAX_QUESTIONS) {
+                alert(`質問回数を使い切りました。\nメニューに戻ると新しい占いができます。`);
+                return;
+            }
+            
+            conversationHistory.push({ role: 'user', content: followUpQuestion });
+            
+            const prompt = `あなたは占い師「智子」として、以下の会話の続きで追加の質問に答えてください。\n\n` +
+                         `過去の会話:\n${conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}\n\n` +
+                         `占い師らしい語り口で、具体的なアドバイスを800文字以上で回答してください。`;
+            
+            document.getElementById('followUpQuestion').value = '';
+            await callGeminiAPI(prompt, followUpQuestion);
+        }
+
+        async function callGeminiAPI(prompt, userMessage) {
+            showScreen('resultScreen');
+            
+            addChatMessage('user', userMessage);
+            
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.id = 'loading';
+            loadingDiv.innerHTML = '<div class="spinner"></div><p>智子が占いの結果を読み解いています...</p>';
+            document.getElementById('chatHistory').appendChild(loadingDiv);
+            
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: prompt }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.9,
+                            maxOutputTokens: 8000,
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                
+                loadingDiv.remove();
+                
+                if (data.candidates && data.candidates[0]) {
+                    const result = data.candidates[0].content.parts[0].text;
+                    addChatMessage('ai', result);
+                    conversationHistory.push({ role: 'assistant', content: result });
+                    questionCount++;
+                    updateQuestionCounter();
+                } else {
+                    throw new Error('占いの結果を取得できませんでした');
+                }
+                
+            } catch (error) {
+                loadingDiv.remove();
+                addChatMessage('ai', '申し訳ございません。占いの結果を取得できませんでした。もう一度お試しください。');
+                console.error('Error:', error);
+            }
+        }
+
+        function addChatMessage(type, message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${type}`;
+            messageDiv.innerHTML = `<p>${message.replace(/\n/g, '<br>')}</p>`;
+            document.getElementById('chatHistory').appendChild(messageDiv);
+            
+            messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+
+        function updateQuestionCounter() {
+            const remaining = MAX_QUESTIONS - questionCount;
+            const counterText = remaining > 0 
+                ? `残り ${remaining} 回質問できます` 
+                : '質問回数を使い切りました（メニューに戻ると新しい占いができます）';
+            document.getElementById('questionCounter').textContent = counterText;
+            
+            if (remaining <= 0) {
+                document.getElementById('followUpSection').querySelector('.btn').disabled = true;
+                document.getElementById('followUpQuestion').disabled = true;
+            }
+        }
+
+        function backToMenu() {
+            showScreen('menuScreen');
+            document.getElementById('fortuneForm').reset();
+            document.getElementById('chatHistory').innerHTML = '';
+            document.getElementById('followUpQuestion').value = '';
+            conversationHistory = [];
+            questionCount = 0;
+            updateQuestionCounter();
+            
+            document.getElementById('followUpSection').querySelector('.btn').disabled = false;
+            document.getElementById('followUpQuestion').disabled = false;
+        }
+
+        updateQuestionCounter();
+    </script>
+</body>
+</html>
